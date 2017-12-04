@@ -1,5 +1,6 @@
 package br.edu.fatecsjc.controller;
 
+import java.awt.EventQueue;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -33,8 +34,24 @@ import com.google.common.io.Files;
 
 import br.edu.fatecsjc.model.TestsetModel;
 import br.edu.fatecsjc.model.TrainsetModel;
+import br.edu.fatecsjc.view.DiagnosticView;
 
 public class LearnController {
+	
+	private DiagnosticView frame = new DiagnosticView();
+	
+	public LearnController() {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					frame.setVisible(true);
+					learn();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
 	
 	public void learn() throws IOException {
 		TrainsetModel trainsetModel = new TrainsetModel();
@@ -46,7 +63,7 @@ public class LearnController {
 	            .updater(Updater.NESTEROVS)
 	            .seed(123)
 	            .build();
-		System.out.println(initializedZooModel.summary());
+		frame.lblLogLabel.setText(initializedZooModel.summary());
 		ComputationGraph modelTransfer = new TransferLearning.GraphBuilder(initializedZooModel)
 			    .fineTuneConfiguration(fineTuneConf)
 			              .setFeatureExtractor("flatten_3")
@@ -57,7 +74,7 @@ public class LearnController {
 			                        .weightInit(WeightInit.XAVIER)
 			                        .activation(Activation.SOFTMAX).build(), "flatten_3")
 			              .build();
-		System.out.println(modelTransfer.summary());
+		frame.lblLogLabel.setText(modelTransfer.summary());
 		modelTransfer.setListeners(new ScoreIterationListener(trainsetModel.MINI_BATCH_SIZE));
 		for (int i = 0; i < trainsetModel.numEpochs; i++) {
 			modelTransfer.fit(trainsetModel.returnModelDataSetIterator());
